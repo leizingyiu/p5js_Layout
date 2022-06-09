@@ -1,3 +1,6 @@
+// Created: 2022/03/04 16:54:00
+// Last modified: "2022/06/09 16:33:16"
+
 class Layout {
     constructor(str,
         settings = {
