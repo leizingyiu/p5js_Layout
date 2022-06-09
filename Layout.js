@@ -1,5 +1,5 @@
 // Created: 2022/03/04 16:54:00
-// Last modified: "2022/06/09 16:33:16"
+// Last modified: "2022/06/09 16:46:50"
 
 class Layout {
     constructor(str,
@@ -66,18 +66,11 @@ class Layout {
         }
         if (arguments.length != 1) {
             console.trace();
-            throw ('settings need a key:value object');
+            console.warn('settings need a key:value object');
             return;
         }
 
-        //console.log(defaultSetting, '\n ____ \n', settings);
-        if (typeof settings == 'undefined') { return defaultSetting; }
-        Object.keys(defaultSetting).map(k => {
-            if (Object.keys(settings).indexOf(k) == -1) {
-                //console.log(k, ' : ', settings, defaultSetting);
-                settings[k] = defaultSetting[k];
-            }
-        });
+        settings = Object.assign(defaultSetting, settings);
 
         if (settings.font instanceof p5.Font) {
             this.font = settings.font;
@@ -102,17 +95,17 @@ textWidth of ${settings.font} is ${w2}`)
             }
         } else {
             console.trace();
-            throw ('font "' + settings.font + '" error : need p5.font or system font name, load it in preload function');
+            console.warn('font "' + settings.font + '" error : need p5.font or system font name, load it in preload function');
         }
 
         if ([settings.spacing, settings.left, settings.top, settings.w, settings.h].some(i => (typeof i) != 'number')) {
             console.trace();
-            throw ('left, top, w, h, space error: ' + ['spacing', 'left', 'top', 'w', 'h'].filter(prop => typeof (settings[prop]) != 'number').map(p => `< ${p} : ${settings[p]} >`).join(', ') + ' is/are not number , please check');
+            console.warn('left, top, w, h, space error: ' + ['spacing', 'left', 'top', 'w', 'h'].filter(prop => typeof (settings[prop]) != 'number').map(p => `< ${p} : ${settings[p]} >`).join(', ') + ' is/are not number , please check');
         }
 
         if (['width', 'height', 'none'].indexOf(settings.fillCell) == -1) {
             console.trace();
-            throw ('fillCell input error: need "width", "height" or "none".');
+            console.warn('fillCell input error: need "width", "height" or "none".');
         }
         //console.log(defaultSetting, '\n --------------- \n', settings);
 
@@ -126,7 +119,7 @@ textWidth of ${settings.font} is ${w2}`)
             switch (true) {
                 case settings[k] !== settings[sameKeysDict[k]]:
                     if ([settings[k], settings[sameKeysDict[k]]].every(v => v !== defaultSetting[k])) {
-                        throw (`In the settings of arguments[1], the value of the short name "${k}" and the full name "${sameKeysDict[k]}" are different`)
+                        console.warn(`In the settings of arguments[1], the value of the short name "${k}" and the full name "${sameKeysDict[k]}" are different`)
                     } else {
                         [k, sameKeysDict[k]].map(prop => {
                             settings[prop] = [settings[k], settings[sameKeysDict[k]]].filter(v => v !== defaultSetting[k])[0];
@@ -152,7 +145,7 @@ textWidth of ${settings.font} is ${w2}`)
             this.str = str;
         } else {
             console.trace();
-            throw (`str "${str}" error: need string`);
+            console.warn(`str "${str}" error: need string`);
         }
 
 
@@ -697,11 +690,11 @@ textWidth of ${settings.font} is ${w2}`)
                     break;
                 default:
                     console.trace();
-                    throw ('margin error: need 1 to 4 numbers');
+                    console.warn('margin error: need 1 to 4 numbers');
             }
         } else {
             console.trace();
-            throw ('margin error: need number array or number');
+            console.warn('margin error: need number array or number');
         }
 
     }
@@ -722,7 +715,7 @@ textWidth of ${settings.font} is ${w2}`)
                 break;
             default:
                 console.trace();
-                throw ('rectmode input error: need one of CORNER , CORNERS , CENTER , RADIUS');
+                console.warn('rectmode input error: need one of CORNER , CORNERS , CENTER , RADIUS');
         }
         rectMode(this._rectmode);
     }
@@ -744,7 +737,7 @@ textWidth of ${settings.font} is ${w2}`)
                 break;
             default:
                 console.trace();
-                throw ('textHorizAlign input error: need one of LEFT , CENTER , RIGHT');
+                console.warn('textHorizAlign input error: need one of LEFT , CENTER , RIGHT');
         }
         switch (textVertAlign) {
             case 'top':
@@ -761,7 +754,7 @@ textWidth of ${settings.font} is ${w2}`)
                 break;
             default:
                 console.trace();
-                throw ('textVertAlign input error: need one of TOP , BOTTOM , CENTER , BASELINE');
+                console.warn('textVertAlign input error: need one of TOP , BOTTOM , CENTER , BASELINE');
         }
         textAlign(...this._textalign);
     }
