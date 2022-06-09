@@ -12,56 +12,27 @@ class Layouts {
 
 
         this.addBtn = this.ctrler_container.button('addingText', 'add a text', () => {
-            that.add('text' + Object.keys(this.layouts).length, 'text_PlaceHolder, change in below', textFont());
+            that.add('text' + Object.keys(this.layouts).length, 'text_PlaceHolder, change in below');
         });
 
         this.ctrler_container.select('setting_layout', [], (e) => {
             // 下拉菜单选择对应layout后，更新slider
 
             let layoutName = e.target.value;
-
             that.setOpcGridAble(layoutName);
-
-            // Object.keys(this.varDict).map(p => {
-            //     // let name = e.path[0].value;
-            //     // let propertyGrop = this.propertyDict[this.varDict[p]];
-            //     // let prop = this.varDict[p];
-            //     // propertyGrop = propertyGrop instanceof Array ? propertyGrop : [propertyGrop];
-            //     // propertyGrop.map(pg => {
-            //     //     console.log(name, pg, prop);
-
-            //     //     opc.update(p, this.layouts[name][pg][prop]);
-            //     //     // opc.range(p,)
-            //     // });
-
-            // });
-
-
-            // TODO
-
-            // if (this.layouts[e.path[0].value].gridAdaptBoo == true) {
-            //     ['Layouts_left', 'Layouts_top'].map(i => { opc.disable(i) });
-            //     ['Layouts_row', 'Layouts_col'].map(i => { opc.enable(i) });
-            // } else {
-            //     ['Layouts_left', 'Layouts_top'].map(i => { opc.enable(i) });
-            //     ['Layouts_row', 'Layouts_col'].map(i => { opc.disable(i) });
-            // }
-
-
-
-            // TODO
-
             that.updateCtrler();
-
             that.updateInputBoxs();
         });
+
         this.selector = this.p5js_ctrler.ctrlers['setting_layout'];
 
         this.contentsDict = {
             "Layouts_str": "str",
             "Layouts_font_url": "font"
         };
+
         this.inputBoxs = {};
+
         Object.keys(this.contentsDict).map(n => {
             this.ctrler_container.input(n, '', (e) => {
                 let layoutName = this.selector.value();
@@ -105,7 +76,7 @@ class Layouts {
             });
         this.modusSelector = this.p5js_ctrler.ctrlers['Layouts_modus'];
 
-        let l = new Layout('', textFont());
+        let l = new Layout('', { font: textFont() });
         let layoutFuncs = [...l.layoutFuncs];
         this.ctrler_container.select('Layouts_layoutType', layoutFuncs, (e) => {
             let layoutName = this.selector.value();
@@ -206,6 +177,7 @@ class Layouts {
                     if (['w', 'h'].indexOf(this.varDict[n]) != -1) {
                         propertyGrop = this.layouts[layoutName].modus;
                     }
+
                     console.log(n, this.varDict[n], propertyGrop, that.layouts[layoutName], that.layouts[layoutName][propertyGrop]);
 
                     that.layouts[layoutName][propertyGrop][prop] = Number(e.path[0].value);
@@ -280,8 +252,9 @@ class Layouts {
         this.gridAdaptFuncs = ['gridFill', 'gridFillCeil', 'gridFillFloor'];
     }
 
-    add(name, str, font,
+    add(name, str,
         settings = {
+            font: textFont(),
             margin: false,
             padding: false,
             spacing: false,
@@ -305,23 +278,8 @@ class Layouts {
             strokeJoin: MITER
         }
     ) {
-        if (settings instanceof Array) {
-            console.log(settings);
-            let temp = [...settings];
-            settings = {};
-            [settings.margin, settings.padding, settings.spacing,
-            settings.left, settings.top, settings.w, settings.h,
-            settings.layoutFunc,
-            settings.rectMode, settings.textHorizAlign, settings.textVertAlign,
-            settings.fillCell,
-            settings.fill, settings.stroke,
-            settings.fillBoo, settings.strokeBoo,
-            settings.strokeWeight, settings.blendMode,
-            settings.fillStyle, settings.strokeStyle,
-            settings.strokeJoin] = temp;
-        }
-
         let defaultSettings = {
+            font: textFont(),
             margin: 0,
             padding: 0,
             spacing: 0,
@@ -344,7 +302,18 @@ class Layouts {
             strokeStyle: false,
             strokeJoin: MITER
         };
-        Object.keys(defaultSettings).map(k => {
+
+        if (settings instanceof Array) {
+            let temp = [...settings];
+            settings = {};
+            temp.length = Math.max(temp.length, Object.keys(defaultSettings).length);
+            Object.keys(defaultSettings).map((k, kIdx) => {
+                settings[k] = temp[kIdx];
+            });
+        }
+
+        Object.keys(defaultSettings).map((k, kIdx) => {
+
             if (typeof settings[k] == 'undefined' || settings[k] == false) {
                 settings[k] = defaultSettings[k];
             }
@@ -364,7 +333,7 @@ class Layouts {
         this.layouts[name] = {
             contents: {
                 str: str,
-                font: font
+                font: settings.font
             },
             space: {
                 margin: settings.margin,
@@ -407,62 +376,33 @@ class Layouts {
         };
         this.layouts[name].stickToCanvas = stickToCanvas;
 
-        //this.grid.cellArgs( left, top, w, h,CORNER)
-        // if (this.layouts[name].settings.gridAdaptBoo == false) {
-        //     this.layouts[name].layout = new Layout(
-        //         ...Object.values(this.layouts[name].contents),
-        //         ...Object.values(this.layouts[name].space),
-        //         ...Object.values(this.layouts[name].measurement),
-        //         ...['rectmode', 'textHorizAlign', 'textVertAlign', 'fillCell'].map(i => this.layouts[name].settings[i]));
-        //     this.layouts[name].modus = 'measurement';
-        // } else {
-        //     this.layouts[name].layout = new Layout(
-        //         ...Object.values(this.layouts[name].contents),
-        //         ...Object.values(this.layouts[name].space),
-        //         ... this.grid.cellArgs( ...Object.values(this.layouts[name].grid),this.layouts[name].settings.rectmode),
-        //         ...['rectmode', 'textHorizAlign', 'textVertAlign', 'fillCell'].map(i => this.layouts[name].settings[i]));
-        //     this.layouts[name].modus = 'grid';
-        // }
+
 
         if (this.layouts[name].gridAdaptBoo == false) {
-            // console.log(` ...Object.values(this.layouts[name].contents),
-            // ...Object.values(this.layouts[name].space),
-            // ...Object.values(this.layouts[name].measurement),
-            // this.layouts[name].setting`, ...Object.values(this.layouts[name].contents),
-            //     ...Object.values(this.layouts[name].space),
-            //     ...Object.values(this.layouts[name].measurement),
-            //     this.layouts[name].setting);
-
-            // console.log(name, this.layouts[name].gridAdaptBoo, this.layouts[name].layout);
 
 
             this.layouts[name].layout = new Layout(
-                ...Object.values(this.layouts[name].contents),
-                ...Object.values(this.layouts[name].space),
-                ...Object.values(this.layouts[name].measurement),
-                this.layouts[name].settings);
+                this.layouts[name].contents.str,
+                {
+                    font: this.layouts[name].contents.font,
+                    ...this.layouts[name].space,
+                    ...this.layouts[name].measurement,
+                    ...this.layouts[name].settings
+                });
 
             this.layouts[name].modus = 'measurement';
 
         } else {
-            // console.log(name, this.layouts[name].gridAdaptBoo, this.layouts[name].modus, this.layouts[name].layout);
-
-            // console.log(name, this.layouts[name].space, this.layouts[name].settings.rectMode, this.layouts[name].grid, this.layouts[name].settings);
-            // console.log(`    ...Object.values(this.layouts[name].contents),
-            // ...Object.values(this.layouts[name].space),
-            // ...this.grid.cellArgs( ...Object.values(this.layouts[name].grid),this.layouts[name].settings.rectmode),
-            // this.layouts[name].settings`, ...Object.values(this.layouts[name].contents),
-            //     ...Object.values(this.layouts[name].space),
-            //     ...this.grid.cellArgs(...Object.values(this.layouts[name].grid), this.layouts[name].settings.rectmode),
-            //     this.layouts[name].settings);
-
-
 
             this.layouts[name].layout = new Layout(
-                ...Object.values(this.layouts[name].contents),
-                ...Object.values(this.layouts[name].space),
-                ...this.grid.cellArgs(...Object.values(this.layouts[name].grid, this.layouts[name].settings.rectMode)),
-                this.layouts[name].settings);
+                this.layouts[name].contents.str,
+                {
+                    font: this.layouts[name].contents.font,
+                    ...this.layouts[name].space,
+                    ...this.grid.cellArgsObj(...Object.values(this.layouts[name].grid, this.layouts[name].settings.rectMode)),
+                    ...this.layouts[name].settings
+                }
+            );
 
             this.layouts[name].modus = 'grid';
 
@@ -472,13 +412,7 @@ class Layouts {
 
 
 
-        //   this.layouts[name] .layout = new Layout(str, font,
-        //                 margin, padding, spacing,
-        //                 left, top, w, h,
-        //                 rectmode, textHorizAlign, textVertAlign, fillCell);
 
-
-        // console.log(this.layouts[name].layoutType);
 
         this.layouts[name].layout.layoutFunc(this.layouts[name].layoutType);
 
@@ -496,32 +430,40 @@ class Layouts {
                 row: row,
                 col: col,
                 w: w,
-                h: h
+                h: h,
+                width: w,
+                height: h
             };
             that.layouts[name].modus = 'grid';
+
             that.update(name);
 
-            // console.log(this.layouts[name]);
             return that.layouts[name];
         };
 
-        this.layouts[name].measureing = (
+        this.layouts[name].measureing = function (
             l = this.layouts[name].measurement.left,
             t = this.layouts[name].measurement.top,
             w = this.layouts[name].measurement.w,
             h = this.layouts[name].measurement.h
-        ) => {
-            if (arguments.length > 2) {
-                that.layouts[name].stickToCanvas = false;
-            }
+        ) {
+            // if (arguments.length > 2) {
+            //     that.layouts[name].stickToCanvas = false;
+            // }
             that.layouts[name].gridAdaptBoo = false;
             that.layouts[name].measurement = {
-                left: l,
-                top: t,
+                l: l,
+                t: t,
                 w: w,
                 h: h,
+                left: l,
+                top: t,
+                width: w,
+                height: h,
             };
+
             that.layouts[name].modus = 'measurement';
+
             that.update(name);
             return that.layouts[name];
         };
@@ -547,7 +489,7 @@ class Layouts {
             args.map(a => {
                 this.updateCtrler(a);
             })
-        } else { // 参数唯一，更新opc
+        } else { // 参数唯一，更新PC
 
 
             let layoutName = this.selector.value();
@@ -557,27 +499,16 @@ class Layouts {
             let propGroup = Object.keys(this.styleDict).includes(ctrlerName) ? 'style' : this.propertyDict[prop];;
 
 
-            // console.log(ctrlerName, layoutName, prop, propGroup);
-
-            // propertyGrop = propertyGrop instanceof Array ? propertyGrop : [propertyGrop];
-            // propertyGrop.map(pg => {
-            //     console.log(opcName, layoutName, pg, prop);
-
-
             if (this.layouts[layoutName].gridAdaptBoo == true && ['w', 'h'].indexOf(prop) != -1) {
                 propGroup = 'grid';
             } else if (this.layouts[layoutName].gridAdaptBoo == false && ['w', 'h'].indexOf(prop) != -1) {
                 propGroup = 'measurement';
             }
-            //TODO
-            // console.log(this.layouts[layoutName]);
-            // console.log(ctrlerName, this.p5js_ctrler.ctrlers, this.p5js_ctrler.ctrlers[ctrlerName],
-            //     this.varDict, prop, propGroup, this.layouts[layoutName][propGroup]);
+
 
             this.p5js_ctrler.update(ctrlerName, this.layouts[layoutName][propGroup][prop]);
         }
-        // opc.range(p,)
-        // });
+
 
     }
     setOpcGridAble(layoutName) {
@@ -643,10 +574,9 @@ class Layouts {
                     let font = this.layouts[layoutName][propertyGrop][prop];
                     textFont(font);
                     let fontName = textFont();
-                    // console.log(fontName);
+                    console.log(fontName, fontName instanceof p5.Font);
                     fontName = typeof fontName == 'string' ? fontName : Object.values(fontName.font.names.fullName)[0];
-                    // console.log('font :', font, '       fontName: ', fontName);
-                    // console.log(textFont());
+
                     this.p5js_ctrler.update(boxName, fontName);
                     pop();
                     break;
@@ -671,58 +601,39 @@ class Layouts {
             names = [...arguments];
         }
 
-
         names.map(_name => {
-            if (Object.keys(this.layouts).indexOf(_name) != -1) {
 
-                // console.log(this.layouts[_name].settings.rectmode, ...Object.values(this.layouts[_name].grid));
-                // console.log(this.grid.cellArgs(
-                //     ...Object.values(this.layouts[_name].grid),
-                //     this.layouts[_name].settings.rectmode
-                // ));
-                // console.log(this.layouts[_name]);
+            this.layouts[_name].settings = Object.assign(
+                this.layouts[_name].settings,
+                this.layouts[_name].contents,
+                this.layouts[_name].space
+            );
 
-                if (this.layouts[_name].gridAdaptBoo == true) {
-
-                    // ...Object.values(this.layouts[_name].grid)
-                    // this.layouts[_name].layout.init(
-                    //     ...Object.values(this.layouts[_name].contents),
-                    //     ...Object.values(this.layouts[_name].space),
-                    //     ... this.grid.cellArgs(
-                    //         ...['col', 'row', 'w', 'h'].map(n => this.layouts[_name].grid[n]),
-                    //         'corner'
-                    //     ),
-                    //     ...['rectmode', 'textHorizAlign', 'textVertAlign', 'fillCell'].map(i => this.layouts[_name].settings[i]));
-                    this.layouts[_name].layout.init(
-                        ...Object.values(this.layouts[_name].contents),
-                        ...Object.values(this.layouts[_name].space),
-                        ...this.grid.cellArgs(
+            switch (this.layouts[_name].modus) {
+                case 'grid':
+                    this.layouts[_name].settings = Object.assign(
+                        this.layouts[_name].settings,
+                        this.grid.cellArgsObj(
                             ...['col', 'row', 'w', 'h'].map(n => this.layouts[_name].grid[n]),
                             'corner'
-                        ),
-                        this.layouts[_name].settings);
+                        ));
+                    break;
+                case 'measurement':
+                    this.layouts[_name].settings = Object.assign(
+                        this.layouts[_name].settings,
+                        this.layouts[_name].measurement
+                    );
+                    break;
+            }
 
-                    // console.log(this.layouts[_name].grid);
+            if (Object.keys(this.layouts).indexOf(_name) != -1) {
 
-                } else {
+                this.layouts[_name].layout.init(
+                    this.layouts[_name].contents.str,
+                    this.layouts[_name].settings
+                );
 
-                    // this.layouts[_name].layout.init(
-                    //     ...Object.values(this.layouts[_name].contents),
-                    //     ...Object.values(this.layouts[_name].space),
-                    //     ...Object.values(this.layouts[_name].measurement),
-                    //     ...['rectmode', 'textHorizAlign', 'textVertAlign', 'fillCell'].map(i => this.layouts[_name].settings[i]));
-                    this.layouts[_name].layout.init(
-                        ...Object.values(this.layouts[_name].contents),
-                        ...Object.values(this.layouts[_name].space),
-                        ...Object.values(this.layouts[_name].measurement),
-                        this.layouts[_name].settings);
-
-                }
                 this.layouts[_name].layout.layoutFunc(this.layouts[_name].layoutType);
-
-                // [].map(n => {
-                //     opc.update(n, this.layouts[e.path[0].value]['space'][this.varDict[n]]);
-                // });// TODO
             }
         });
         this.setOpcGridAble(this.selector.value());
@@ -755,7 +666,11 @@ class Layouts {
             if (this.layouts[k].style._strokeBoo == false) {
                 noStroke()
             }
+
+
+
             this.layouts[k].layout.text();
+
 
             pop()
         });

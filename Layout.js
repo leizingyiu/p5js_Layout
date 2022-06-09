@@ -1,45 +1,68 @@
 class Layout {
-    constructor(str, font,
-        margin = 0, padding = 0, spacing = 0,
-        left = 0, top = 0, w = width, h = height,
+    constructor(str,
         settings = {
+            font: textFont(),
+            margin: 0,
+            padding: 0,
+            spacing: 0,
+            left: 0,
+            top: 0,
+            width: width,
+            height: height,
+            l: 0,
+            t: 0,
+            w: width,
+            h: height,
             rectmode: CENTER,
             textHorizAlign: CENTER,
             textVertAlign: CENTER,
             fillCell: ["width", "height"][1],
             defaultLayout: ['splitWordGrid', 'splitSentenceGrid', 'gridFillCeil', 'gridFillFloor'][0],
             letterFillFn: () => { return false },
-            letterStrokeFn: () => { return false }
+            letterStrokeFn: () => { return false },
         }) {
+
 
         this.initArguments = [...arguments];
 
-        //console.log('layout constructor      ' , 'str, font,margin, padding, spacing,left, top, w, h,settings'.split(',').map(i => i + ':' + eval(i)).join(', '));
-        //console.log(left);
-
-        this.init(str, font,
-            margin, padding, spacing,
-            left, top, w, h,
+        this.init(str,
             settings);
 
         this.layoutType = '';
         this.layoutFuncs = ['splitGrid', 'splitWordGrid', 'splitSentenceGrid', 'gridFillCeil', 'gridFillFloor'];
     }
+
+
     defaultSettings(settings) {
 
-        // TODO
         let defaultSetting = {
-            rectmode: CENTER, textHorizAlign: CENTER, textVertAlign: CENTER,
+            font: textFont(),
+            margin: 0,
+            padding: 0,
+            spacing: 0,
+            left: 0,
+            top: 0,
+            width: window.innerWidth,
+            height: window.innerHeight,
+            l: 0,
+            t: 0,
+            w: window.innerWidth,
+            h: window.innerHeight,
+            rectmode: CENTER,
+            textHorizAlign: CENTER,
+            textVertAlign: CENTER,
             fillCell: (["width", "height"][1]),
             defaultLayout: (['splitWordGrid', 'splitSentenceGrid', 'gridFillCeil', 'gridFillFloor'][0])
-            , letterFillFn: () => { return false },
-            letterStrokeFn: () => { return false }
+            ,
+            letterFillFn: () => { return false },
+            letterStrokeFn: () => { return false },
         };
 
         if (arguments.length == 0) {
             return defaultSetting;
         }
         if (arguments.length != 1) {
+            console.trace();
             throw ('settings need a key:value object');
             return;
         }
@@ -53,40 +76,87 @@ class Layout {
             }
         });
 
+        if (settings.font instanceof p5.Font) {
+            this.font = settings.font;
+        } else if ((!(settings.font instanceof p5.Font)) && (typeof settings.font == 'string')) {
+            if (settings.font != this.getDefaultFont()) {
+                push();
+
+
+                let sampleText = `1234567890+-*/=~!@#$%^&￥…():"{}[]|\?<>,.;'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ：。，、！？；《》—（）“”‘’【】_～―★『』`;
+                textFont(' ');
+                let w1 = textWidth(sampleText, 0, 0);
+                textFont(settings.font);
+                let w2 = textWidth(sampleText, 0, 0);
+
+
+                if (w1 == w2) {
+                    console.info(`textWidth of ${textFont(' ')} or ${this.getDefaultFont()} is ${w1},
+textWidth of ${settings.font} is ${w2}`)
+                    console.warn(`font ${settings.font} error: This is not the default font, nor can it be found in the system `);
+                }
+                pop();
+            }
+        } else {
+            console.trace();
+            throw ('font "' + settings.font + '" error : need p5.font or system font name, load it in preload function');
+        }
+
+        if ([settings.spacing, settings.left, settings.top, settings.w, settings.h].some(i => (typeof i) != 'number')) {
+            console.trace();
+            throw ('left, top, w, h, space error: ' + ['spacing', 'left', 'top', 'w', 'h'].filter(prop => typeof (settings[prop]) != 'number').map(p => `< ${p} : ${settings[p]} >`).join(', ') + ' is/are not number , please check');
+        }
+
+        if (['width', 'height', 'none'].indexOf(settings.fillCell) == -1) {
+            console.trace();
+            throw ('fillCell input error: need "width", "height" or "none".');
+        }
         //console.log(defaultSetting, '\n --------------- \n', settings);
+
+        let sameKeysDict = {
+            l: 'left',
+            t: 'top',
+            w: 'width',
+            h: 'height'
+        }
+        Object.keys(sameKeysDict).map(k => {
+            switch (true) {
+                case settings[k] !== settings[sameKeysDict[k]]:
+                    if ([settings[k], settings[sameKeysDict[k]]].every(v => v !== defaultSetting[k])) {
+                        throw (`In the settings of arguments[1], the value of the short name "${k}" and the full name "${sameKeysDict[k]}" are different`)
+                    } else {
+                        [k, sameKeysDict[k]].map(prop => {
+                            settings[prop] = [settings[k], settings[sameKeysDict[k]]].filter(v => v !== defaultSetting[k])[0];
+                        });
+                    }
+                    break;
+            }
+        })
 
         return settings;
     }
-    init(str, font,
-        margin = 0, padding = 0, spacing = 0,
-        left = 0, top = 0, w = width, h = height,
+    init(str,
         settings) {
+
         settings = this.defaultSettings(settings);
 
-        //console.log('layout init 1      ',        'str, font,margin, padding, spacing,left, top, w, h,settings'.split(',').map(i => i + ':' + eval(i)).join(', '));
+
+
+
+        this.settings = settings;
 
         if (typeof str == 'string') {
             this.str = str;
         } else {
-            throw ('str error: need string');
+            console.trace();
+            throw (`str "${str}" error: need string`);
         }
 
-        if (font instanceof p5.Font) {
-            this.font = font;
-        } else if (typeof font == 'string') {
-            push();
-            textFont(font);
-            let f = textFont();
-            if (f != font) {
-                throw ('font error: cant fint a system font name ' + font);
-            } else {
-                this.font = font;
-            }
-            pop();
-        } else {
-            //console.log(font);
-            throw ('font error : need p5.font or system font name, load it in preload function');
-        }
+
+        ['font', 'letterFillFn', 'letterStrokeFn', 'spacing', 'left', 'top', 'w', 'h', 'fillCell', 'rectmode', 'defaultLayout'].map(prop => {
+            this[prop] = settings[prop];
+        })
+
 
         this.margin = {
             "l": 0,
@@ -109,40 +179,13 @@ class Layout {
             "bottom": 0
         };
 
-
-        this.letterFillFn = settings.letterFillFn;
-        this.letterStrokeFn = settings.letterStrokeFn;
-
-
-        this.setTRDLprop('margin', margin);
-        this.setTRDLprop('padding', padding);
+        this.setTRDLprop('margin', settings.margin);
+        this.setTRDLprop('padding', settings.padding);
 
         this._length = this.str.length;
 
-        //console.log('layout init 2      ', 'str, font,margin, padding, spacing,left, top, w, h,settings'.split(',').map(i => i + ':' + eval(i)).join(', '));
-
-        if ([spacing, left, top, w, h].every(i => (typeof i) == 'number')) {
-            this.spacing = spacing, this.left = left, this.top = top, this.w = w, this.h = h;
-        } else {
-            throw ('left, top, w, h error: some of them is not number,please check');
-        }
-
-        //console.log('layout init 3      ', str, font,
-        // margin, padding, spacing,
-        //     left, top, w, h,
-        //     settings);
-
-        //console.log(str, spacing, left, top, w, h);
-
-        if (['width', 'height', 'none'].indexOf(settings.fillCell) != -1) {
-            this.fillCell = settings.fillCell;
-        } else {
-            throw ('fillCell input error: need "width", "height" or "none".');
-        }
-
         this.W = this.w - this.margin.l - this.margin.r;
         this.H = this.h - this.margin.t - this.margin.b;
-
 
         this.letterPosArr = [];
         this.fontsize = this.h;
@@ -153,12 +196,7 @@ class Layout {
 
         this._rectmode = CENTER;
         this._textalign = [CENTER, CENTER];
-        this.rectmode = settings.rectmode;
         this.textalign = [settings.textHorizAlign, settings.textVertAlign];
-
-        // console.log(this, defaultLayout, typeof this[defaultLayout] == 'function');
-        this.defaultLayout = settings.defaultLayout;
-
 
 
         if (typeof this[this.defaultLayout] == 'function') {
@@ -175,10 +213,9 @@ class Layout {
         this[this.layoutType]();
     }
     layoutFunc(type = this.layoutType) {
-        // console.log(this.defaultLayout, type);
-        // console.log(type, typeof type);
+
         if (type == '') {
-            // console.log('default');
+
             type = this.defaultLayout;
         }
         if (arguments.length == 1) {
@@ -239,7 +276,6 @@ class Layout {
         // this.fontsize = h - this.padding.t - this.padding.b;
         this.fontsize = Math.min(h, this.fontsize);
 
-        // console.log(this.str, this.L, this.letterPosArr);
 
     }
     splitWordGrid() {
@@ -322,14 +358,11 @@ class Layout {
             return pos;
         });
 
-        // console.log(this.str, gridArr, this.letterPosArr);
-        // noLoop();
+
 
 
         this.fontsize = h - this.padding.t - this.padding.b;
 
-        // console.table(this.letterPosArr);
-        // console.log(this.col, this.row);
     }
     gridFillCeil() {
         this.layoutType = 'gridFillCeil';
@@ -496,9 +529,6 @@ class Layout {
                     default:
                 }
             }
-            // console.log(this.str[i], this.fillCell, bound, textSize());
-
-            // text(this.str[i], x, y, w, h);
 
             this.fillStyleFn = this.letterFillFn();
             this.strokeStyleFn = this.letterStrokeFn();
@@ -663,9 +693,11 @@ class Layout {
                     }
                     break;
                 default:
+                    console.trace();
                     throw ('margin error: need 1 to 4 numbers');
             }
         } else {
+            console.trace();
             throw ('margin error: need number array or number');
         }
 
@@ -686,6 +718,7 @@ class Layout {
                 this._rectmode = RADIUS;
                 break;
             default:
+                console.trace();
                 throw ('rectmode input error: need one of CORNER , CORNERS , CENTER , RADIUS');
         }
         rectMode(this._rectmode);
@@ -707,6 +740,7 @@ class Layout {
                 this._textalign[0] = RIGHT;
                 break;
             default:
+                console.trace();
                 throw ('textHorizAlign input error: need one of LEFT , CENTER , RIGHT');
         }
         switch (textVertAlign) {
@@ -723,12 +757,19 @@ class Layout {
                 this._textalign[1] = BASELINE;
                 break;
             default:
+                console.trace();
                 throw ('textVertAlign input error: need one of TOP , BOTTOM , CENTER , BASELINE');
         }
         textAlign(...this._textalign);
     }
     get textalign() {
         return this._textalign;
+    }
+
+    getDefaultFont() {
+        let style = window.getComputedStyle(drawingContext.canvas);
+        var defaultFont = style.getPropertyValue('font-family');
+        return defaultFont;
     }
 
     // setMode(rectMode, textHorizAlign, textVertAlign) {
@@ -765,6 +806,5 @@ class Layout {
     //         }
     //     }
     // }
-
-
 }
+

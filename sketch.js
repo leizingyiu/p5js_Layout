@@ -24,13 +24,16 @@ function preload() {
 }
 function setup() {
     createCanvas(windowWidth, windowHeight);
-    layoutArguments = [str = theText, font = titleFont, margin = 12, padding = 2, spacing = 4, left = 0, top = 0, w = width, h = height, {
+    layoutArguments = [str = theText, {
+        font: titleFont, margin: 12, padding: 2, spacing: 4, left: 0, top: 0, w: width, h: height,
         fillCell: 'none'
     }];
     layout = new Layout(...layoutArguments);
-    overLayout = new Layout(overText, titleFont,
-        margin = 12, padding = 2, spacing = 4,
-        left = 0, top = 0, width, height, { fillCell: 'none' })
+    overLayout = new Layout(overText, {
+        font: titleFont,
+        margin: 12, padding: 2, spacing: 4,
+        left: 0, top: 0, w: width, h: height, fillCell: 'none'
+    })
 
     layout.splitSentenceGrid();
     overLayout.gridFill();
@@ -62,7 +65,7 @@ let clickIdx = 0;
 function mouseClicked() {
     let funcs = ['gridFillCeil', 'gridFillFloor', 'splitWordGrid', 'splitSentenceGrid'];
     layout[funcs[clickIdx]]();
-    console.log(funcs[clickIdx]);
+    // console.log(funcs[clickIdx]);
     clickIdx = (clickIdx + 1) % funcs.length;
     redraw();
 }
